@@ -1,21 +1,71 @@
-import React, { useEffect } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
+import {axiosWithAuth} from "./../helpers/axiosWithAuth";
 
-const Login = () => {
+
+const initialState = {
+  username:'Lambda School',
+  password:'i<3Lambd4',
+  error:''
+}
+
+const Login = (props) => {
+  const [state, setState] = useState(initialState)
   // make a post request to retrieve a token from the api
   // when you have handled the token, navigate to the BubblePage route
+  const handleChange = (e)=>{
+    setState({
+      ...state,
+      [e.target.name]:e.target.value,
+      error:''
+    })
+  }
+  const submitHandler = (e)=>{
+    e.preventDefault();
+    axiosWithAuth()
+      .post('/login', state)
+      .then(res=>{
+        console.log(res)
+        localStorage.setItem('token', JSON.stringify(res.data.payload))
+        props.history.push('/protected')
+      })
+      .catch((err)=>{
+        // console.log({err})
+        // console.log(err.response.data.error)
+        setState({error: err.response.data.error })
+      })
 
-  useEffect(()=>{
+
+  }
+
+  // useEffect(()=>{
     // make a post request to retrieve a token from the api
     // when you have handled the token, navigate to the BubblePage route
-  });
+  // });
 
   return (
     <>
-      <h1>
-        Welcome to the Bubble App!
-        <p>Build a login page here</p>
-      </h1>
+      <div>
+        <h1>Welcome to Bubbles!</h1>
+        <form onSubmit={submitHandler}>
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={state.username}
+            onChange={handleChange}
+          />
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={state.password}
+            onChange={handleChange}
+          />
+          <p style={{ color: `red`, fontSize: "12px" }}>{state.error}</p>
+          <button>Log in</button>
+        </form>
+      </div>
     </>
   );
 };
